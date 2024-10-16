@@ -1,0 +1,11 @@
+PyPDF2
+pdfminer.six
+pillow
+pdf2image
+pymupdf
+tqdm
+
+pdfplumber
+tqdm
+rank_bm25
+jieba
