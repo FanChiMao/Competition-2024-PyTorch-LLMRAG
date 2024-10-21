@@ -52,8 +52,8 @@ def BM25_retrieve(qs, source, corpus_dict):
 if __name__ == "__main__":
     # 使用argparse解析命令列參數
     parser = argparse.ArgumentParser(description='Process some paths and files.')
-    parser.add_argument('--question_path', type=str, default=r"D:\Others\LLM_RAG\Competition-2024-PyTorch-LLMRAG-main\datasets\preliminary\questions_example.json", help='讀取發布題目路徑')  # 問題文件的路徑
-    parser.add_argument('--source_path', type=str, default=r"D:\Others\LLM_RAG\Competition-2024-PyTorch-LLMRAG-main\datasets\preliminary", help='讀取參考資料路徑')  # 參考資料的路徑
+    parser.add_argument('--question_path', type=str, default=r".\datasets\preliminary\questions_example.json", help='讀取發布題目路徑')  # 問題文件的路徑
+    parser.add_argument('--source_path', type=str, default=r".\datasets\preliminary", help='讀取參考資料路徑')  # 參考資料的路徑
     parser.add_argument('--output_path', type=str, default="./result.json", help='輸出符合參賽格式的答案路徑')  # 答案輸出的路徑
 
     args = parser.parse_args()  # 解析參數

@@ -3,9 +3,8 @@ pdfminer.six
 pillow
 pdf2image
 pymupdf
-tqdm
-
 pdfplumber
 tqdm
 rank_bm25
 jieba
+sentence_transformers  # python envs >= 3.10
