@@ -1,10 +1,12 @@
 import os
+import re
 import json
 import argparse
 
 from tqdm import tqdm
 import jieba
 import jieba_TW.jieba as jieba_tw
+from jieba_TW.custom_dict import CUSTOM_CORPUS, REWRITER_DICT
 import pdfplumber
 from rank_bm25 import BM25Okapi, BM25Plus
 import numpy as np
@@ -19,7 +21,7 @@ def load_data(source_path):
     return corpus_dict
 
 
-def read_pdf(pdf_loc, page_infos: list = None):
+def read_pdf(pdf_loc, page_infos: list = None, remove_noise=True):
     pdf = pdfplumber.open(pdf_loc)  # 打開指定的PDF文件
 
     # 如果指定了頁面範圍，則只提取該範圍的頁面，否則提取所有頁面
@@ -30,6 +32,9 @@ def read_pdf(pdf_loc, page_infos: list = None):
         if text:
             pdf_text += text
     pdf.close()  # 關閉PDF文件
+
+    if remove_noise:
+        pdf_text.replace(" ", "").replace("\n", "").replace("\t", "").replace("\r", "")
 
     return pdf_text  # 返回萃取出的文本
 
@@ -43,26 +48,68 @@ def save_corpus_dict(corpus_dict, file_path):
     with open(file_path, 'wb') as f:
         pickle.dump(corpus_dict, f)
 
+def query_rewriter(query: str):
 
-def retriever(qs, source, corpus_dict, tokenization='ch', reranker=False):
+
+    def replace_year(match):
+        gregorian_year = int(match.group(0))
+        roc_year = gregorian_year - 1911
+        return f"民國{roc_year}"
+
+
+    def replace_season(query_str):
+        season_map = {
+            r"(第1季|第1季度|第一季|第一季度)": "1月1日至3月31日",
+            r"(第2季|第2季度|第二季|第二季度)": "4月1日至6月30日",
+            r"(第3季|第3季度|第三季|第三季度)": "7月1日至9月30日",
+            r"(第4季|第4季度|第四季|第四季度)": "10月1日至12月31日"
+        }
+
+        for season, date_range in season_map.items():
+            query_str = re.sub(season, date_range, query_str)
+
+        return query_str
+
+    def replace_company(query_str):
+        # Use a loop to replace each abbreviation with its full name
+        for abbrev, full_name in REWRITER_DICT.items():
+            query_str = query_str.replace(abbrev, full_name)  # Direct string replacement
+        return query_str
+
+    # Replace years (e.g., 2022 -> 民國111)
+    year_pattern = r'(20\d{2})'
+    converted_query = re.sub(year_pattern, replace_year, query)
+
+    converted_query = replace_season(converted_query)
+
+    converted_query = replace_company(converted_query)
+
+    print(converted_query)
+    return converted_query
+
+def retriever(qs, source, corpus_dict, tokenization: jieba = 'ch', reranker=False):
     if tokenization == 'ch':
         tokenizer = jieba
     elif tokenization == 'tw':
         tokenizer = jieba_tw
         tokenizer.dt.cache_file = 'jieba.cache.tw'
+        for corpus in CUSTOM_CORPUS:
+            tokenizer.add_word(corpus)
     else:
         raise ValueError(f"Invalid tokenization method \"{tokenization}\"")
+
+    # qs = query_rewriter(qs)
 
     filtered_corpus = [corpus_dict[int(file)] for file in source]
     tokenized_corpus = [list(tokenizer.cut_for_search(doc)) for doc in filtered_corpus]
     bm25 = BM25Plus(tokenized_corpus)
     tokenized_query = list(tokenizer.cut_for_search(qs))
-    top_docs = bm25.get_top_n(tokenized_query, list(filtered_corpus), n=5)
+    top_docs = bm25.get_top_n(tokenized_query, list(filtered_corpus), n=3)
 
-    if reranker:
-        reranker_model = SentenceTransformer('BAAI/bge-m3')  # bge-base-zh-v1.5 (small / base / large) / bge-m3
+    if reranker:  # BAAI/bge-small-zh-v1.5 (small / base / large) / bge-m3
+        reranker_model = SentenceTransformer('BAAI/bge-small-zh-v1.5')
         # reranked_docs = rerank_with_sentence_transformer(qs, top_docs, reranker_model)
-        reranked_docs = rerank_with_chunking(qs, top_docs, reranker_model)
+        reranked_docs = rerank_with_chunking(qs, top_docs, reranker_model, chunk_size=50, overlap_size=25)
         a = reranked_docs[0]
     else:
         a = top_docs[0]
@@ -71,27 +118,35 @@ def retriever(qs, source, corpus_dict, tokenization='ch', reranker=False):
     return res[0]  # 回傳檔案名
 
 
+def chunk_document_str(text, chunk_size=512, overlap_size=100):
 
-def chunk_docs_string(text, embedder_model, max_tokens=512):
+    if "question" in text:  # FAQ
+        data_list = eval(text)  # change to json format
+        questions = [item['question'] for item in data_list if 'question' in item]
+        return questions
+
     chunks = []
-    for i in range(0, len(text), max_tokens):
-        chunk_text = text[i:i + max_tokens]
+    stride = chunk_size - overlap_size
+    if stride <= 0:
+        raise ValueError(f"Overlap size must be smaller than chunk size, get {overlap_size}.")
+
+    for i in range(0, len(text), stride):
+        chunk_text = text[i:i + chunk_size]
         chunks.append(chunk_text)
     return chunks
 
 
-def rerank_with_chunking(query, top_docs, embedder_model, max_tokens=512):
+def rerank_with_chunking(query, top_docs, embedder_model, chunk_size=512, overlap_size=100):
     query_embedding = embedder_model.encode(query, normalize_embeddings=True, convert_to_tensor=True)
 
     doc_to_max_similarity = []
     for doc in top_docs:
-        chunk_texts = chunk_docs_string(doc, embedder_model, max_tokens=max_tokens)
+        chunk_texts = chunk_document_str(text=doc, chunk_size=chunk_size, overlap_size=overlap_size)
         chunk_embeddings = embedder_model.encode(chunk_texts, normalize_embeddings=True, convert_to_tensor=True)
         chunk_similarities = util.pytorch_cos_sim(query_embedding, chunk_embeddings)
 
         max_similarity = np.max(chunk_similarities.cpu().numpy())
         doc_to_max_similarity.append(max_similarity)
-
 
     ranked_docs = sorted(zip(top_docs, doc_to_max_similarity), key=lambda x: x[1], reverse=True)
 
@@ -119,8 +174,8 @@ if __name__ == "__main__":
     parser.add_argument('--question_path', type=str, default=r".\datasets\preliminary\questions_example.json")
     parser.add_argument('--source_path', type=str, default=r".\datasets\preliminary")
     parser.add_argument('--tokenization', type=str, default="tw", help='結巴斷詞')  # tw, ch
-    parser.add_argument('--reranker', type=bool, default=False, help='是否使用 Re-ranker')
-    parser.add_argument('--output_path', type=str, default="./result_top5.json")
+    parser.add_argument('--use_reranker', type=bool, default=True, help='是否使用 Re-ranker')
+    parser.add_argument('--output_path', type=str, default="./result.json")
     args = parser.parse_args()
 
     with open(args.question_path, 'rb') as f:
@@ -128,19 +183,19 @@ if __name__ == "__main__":
 
     ####################################################################################################################
     # Load or create the corpus dict for each category
-    if os.path.exists("./insurance_corpus.pkl"):
-        corpus_dict_insurance = load_corpus_dict("./insurance_corpus.pkl")
+    if os.path.exists("./datasets/corpus/insurance_corpus_clean.pkl"):
+        corpus_dict_insurance = load_corpus_dict("./datasets/corpus/insurance_corpus_clean.pkl")
     else:
         source_path_insurance = os.path.join(args.source_path, 'insurance')
         corpus_dict_insurance = load_data(source_path_insurance)
-        save_corpus_dict(corpus_dict_insurance, "./insurance_corpus.pkl")
+        save_corpus_dict(corpus_dict_insurance, "./datasets/corpus/insurance_corpus_clean.pkl")
 
-    if os.path.exists("./finance_corpus.pkl"):
-        corpus_dict_finance = load_corpus_dict("./finance_corpus.pkl")
+    if os.path.exists("./datasets/corpus/finance_corpus_clean.pkl"):
+        corpus_dict_finance = load_corpus_dict("./datasets/corpus/finance_corpus_clean.pkl")
     else:
         source_path_finance = os.path.join(args.source_path, 'finance')
         corpus_dict_finance = load_data(source_path_finance)
-        save_corpus_dict(corpus_dict_finance, "./finance_corpus.pkl")
+        save_corpus_dict(corpus_dict_finance, "./datasets/corpus/finance_corpus_clean.pkl")
 
     with open(os.path.join(args.source_path, 'faq/pid_map_content.json'), 'rb') as f_s:
         key_to_source_dict = json.load(f_s)
@@ -160,7 +215,11 @@ if __name__ == "__main__":
         else:
             raise ValueError(f"Category must to be \"finance\", \"insurance\" or \"faq\", get \"{q_dict['category']}\" instead.")
 
-        retrieved = retriever(q_dict['query'], q_dict['source'], corpus_dict, args.tokenization, args.reranker)
+        # check certain qid
+        # if q_dict['qid'] != 144:
+        #     continue
+
+        retrieved = retriever(q_dict['query'], q_dict['source'], corpus_dict, args.tokenization, args.use_reranker)
         answer_dict['answers'].append({"qid": q_dict['qid'], "retrieve": retrieved})
 
     ####################################################################################################################
