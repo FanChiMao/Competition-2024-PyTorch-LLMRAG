@@ -49,16 +49,16 @@ def print_corpus_in_brackets(pdf_folder_path):
 def save_corpus(corpus, output_file):
     with open(output_file, 'w', encoding='utf-8') as f:
         for line in corpus:
-            f.write(f"\"{line}\",\n")
+            f.write(f"{line}\n")
 
 
 if __name__ == '__main__':
     # Print to check the parsing result
-    content = read_pdf(r"D:\Others\LLM_RAG\Competition-2024-PyTorch-LLMRAG-main\datasets\preliminary\finance\76.pdf")
-    print(content)
+    # content = read_pdf(r"D:\Others\LLM_RAG\Competition-2024-PyTorch-LLMRAG-main\datasets\preliminary\finance\76.pdf")
+    # print(content)
 
 
-    # # print the words in 「」
-    # corpus = print_corpus_in_brackets(r"D:\Others\LLM_RAG\Competition-2024-PyTorch-LLMRAG-main\datasets\preliminary\finance")
-    # save_corpus(corpus, "finance.txt")
+    # print the words in 「」
+    corpus = print_corpus_in_brackets(r"D:\Others\LLM_RAG\Competition-2024-PyTorch-LLMRAG-main\datasets\preliminary\finance")
+    save_corpus(corpus, "finance.txt")
 

@@ -1,10 +1,11 @@
 import json
 import argparse
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process some paths and files.')
-    parser.add_argument('--gt', type=str, default="./datasets/preliminary/ground_truths_example.json")  # 問題文件的路徑
-    parser.add_argument('--rs', type=str, default=r"./outputs/baseline.json")  # 參考資料的路徑  71.33%
+    parser.add_argument('--gt', type=str, default="./datasets/preliminary/ground_truths_example_revision.json")  # 問題文件的路徑
+    parser.add_argument('--rs', type=str, default=r"./result.json")  # 參考資料的路徑  71.33%
 
     args = parser.parse_args()
 

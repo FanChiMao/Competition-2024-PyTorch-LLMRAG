@@ -6,7 +6,6 @@ import argparse
 from tqdm import tqdm
 import jieba
 import jieba_TW.jieba as jieba_tw
-from datasets.corpus.custom_corpus import CUSTOM_CORPUS, REWRITER_DICT
 import pdfplumber
 from rank_bm25 import BM25Okapi, BM25Plus
 import numpy as np
@@ -72,8 +71,17 @@ def query_rewriter(query: str):
         return query_str
 
     def replace_company(query_str):
-        # Use a loop to replace each abbreviation with its full name
-        for abbrev, full_name in REWRITER_DICT.items():
+        rewrite_map = {
+            "中鋼": "中國鋼鐵股份有限公司及子公司",
+            "國巨": "國巨股份有限公司及其子公司",
+            "研華": "研華股份有限公司及其子公司",
+            "和泰車": "和泰汽車股份有限公司及子公司",
+            "智邦": "智邦科技股份有限公司及其子公司",
+            "聯電": "聯華電子股份有限公司及子公司",
+            "瑞昱": "瑞昱半導體股份有限公司及子公司",
+
+        }
+        for abbrev, full_name in rewrite_map.items():
             query_str = query_str.replace(abbrev, full_name)  # Direct string replacement
         return query_str
 
@@ -95,8 +103,11 @@ def retriever(qs, source, corpus_dict, tokenization: jieba = 'ch', reranker=Fals
     elif tokenization == 'tw':
         tokenizer = jieba_tw
         tokenizer.dt.cache_file = 'jieba.cache.tw'
-        for corpus in CUSTOM_CORPUS:
-            tokenizer.add_word(corpus)
+
+        tokenizer.load_userdict("datasets/corpus/user_dict.txt")  # from Tom
+
+        tokenizer.load_userdict("datasets/corpus/insurance_custom_words.txt")  # from Jonathan
+
     else:
         raise ValueError(f"Invalid tokenization method \"{tokenization}\"")
 
@@ -173,7 +184,7 @@ def rerank_with_sentence_transformer(query, top_docs, embedder_model: SentenceTr
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process some paths and files.')
-    parser.add_argument('--question_path', type=str, default=r".\datasets\preliminary\questions_example.json")
+    parser.add_argument('--question_path', type=str, default=r".\datasets\preliminary\questions_example_revision.json")
     parser.add_argument('--source_path', type=str, default=r".\datasets\preliminary")
     parser.add_argument('--tokenization', type=str, default="tw", help='結巴斷詞')  # tw, ch
     parser.add_argument('--use_reranker', type=bool, default=True, help='是否使用 Re-ranker')
@@ -218,7 +229,7 @@ if __name__ == "__main__":
             raise ValueError(f"Category must to be \"finance\", \"insurance\" or \"faq\", get \"{q_dict['category']}\" instead.")
 
         # check certain qid
-        # if q_dict['qid'] != 144:
+        # if q_dict['qid'] != 109:
         #     continue
 
         retrieved = retriever(q_dict['query'], q_dict['source'], corpus_dict, args.tokenization, args.use_reranker)
