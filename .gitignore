@@ -1,0 +1,4 @@
+*.pyc
+*.pyd
+*.pkl
+output/

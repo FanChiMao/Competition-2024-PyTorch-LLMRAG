@@ -1,0 +1,8 @@
+Base:
+  use_pickle: True
+  insurance_pdf_pkl: ./data/base_insurance_pdf.pkl
+  finance_pdf_pkl: ./data/base_finance_pdf.pkl
+Kelvin:
+  use_pickle: True
+  insurance_pdf_pkl: ./data/kelvin_insurance_pdf.pkl
+  finance_pdf_pkl: ./data/kelvin_finance_pdf.pkl
