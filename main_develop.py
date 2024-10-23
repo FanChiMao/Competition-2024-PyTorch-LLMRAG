@@ -6,7 +6,7 @@ import argparse
 from tqdm import tqdm
 import jieba
 import jieba_TW.jieba as jieba_tw
-from jieba_TW.custom_dict import CUSTOM_CORPUS, REWRITER_DICT
+from datasets.corpus.custom_corpus import CUSTOM_CORPUS, REWRITER_DICT
 import pdfplumber
 from rank_bm25 import BM25Okapi, BM25Plus
 import numpy as np
@@ -48,6 +48,7 @@ def save_corpus_dict(corpus_dict, file_path):
     with open(file_path, 'wb') as f:
         pickle.dump(corpus_dict, f)
 
+
 def query_rewriter(query: str):
 
 
@@ -86,6 +87,7 @@ def query_rewriter(query: str):
 
     print(converted_query)
     return converted_query
+
 
 def retriever(qs, source, corpus_dict, tokenization: jieba = 'ch', reranker=False):
     if tokenization == 'ch':
