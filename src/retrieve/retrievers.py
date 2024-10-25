@@ -25,8 +25,9 @@ class KelvinRetriever(BaseRetriever):
         tokenized_query = list(jieba.lcut_for_search(query))  # 將查詢語句進行分詞
         ans = bm25.get_top_n(tokenized_query, list(filtered_corpus), n= self.top_n)  # 根據查詢語句檢索，返回最相關的文檔，其中n為可調整項
         # 找回與最佳匹配文本相對應的檔案名
-        
         res = [key for value in ans for key, val in self.corpus.items() if val == value]
+        
         if self.top_n == 1:
             return res[0]
         return res[:self.top_n]  # 回傳檔案名
+    

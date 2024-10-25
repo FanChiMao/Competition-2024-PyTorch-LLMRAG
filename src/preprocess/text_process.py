@@ -74,7 +74,16 @@ def remove_punctuation(text):
     text = re.sub("[{}]+".format(punc), "", text)
     return text
 
+def remove_stopwords(text):
+    with open("./data/stopwords_baidu.txt", "r", encoding="utf-8") as f:
+        stopwords = f.read().split("\n")
+    for stopword in stopwords:
+        text = text.replace(stopword, "")
+    return text
+
 def kelvin_preprocess(text):
+    # [Kelvin] 清除停用詞
+    text = remove_stopwords(text)
     # [Kelvin] 清除特殊符號
     text = remove_punctuation(text)
     # [Kelvin] 民國年轉換
