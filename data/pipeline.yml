@@ -1,8 +1,19 @@
 Base:
   use_pickle: True
-  insurance_pdf_pkl: ./data/base_insurance_pdf.pkl
-  finance_pdf_pkl: ./data/base_finance_pdf.pkl
+  insurance_pdf_pkl: ./data/processed_pdf_pkl/base_insurance_pdf.pkl
+  finance_pdf_pkl: ./data/processed_pdf_pkl/base_finance_pdf.pkl
+
 Kelvin:
   use_pickle: True
-  insurance_pdf_pkl: ./data/kelvin_insurance_pdf.pkl
-  finance_pdf_pkl: ./data/kelvin_finance_pdf.pkl
+  insurance_pdf_pkl: ./data/processed_pdf_pkl/kelvin_insurance_pdf.pkl
+  finance_pdf_pkl: ./data/processed_pdf_pkl/kelvin_finance_pdf.pkl
+
+Jonathan:
+  use_pickle: True
+  insurance_pdf_pkl: ./data/processed_pdf_pkl/jonathan_insurance_pdf.pkl
+  finance_pdf_pkl: ./data/processed_pdf_pkl/jonathan_finance_pdf.pkl
+
+Tom:
+  use_pickle: True
+  insurance_pdf_pkl: ./data/processed_pdf_pkl/tom_insurance_pdf.pkl
+  finance_pdf_pkl: ./data/processed_pdf_pkl/tom_finance_pdf.pkl

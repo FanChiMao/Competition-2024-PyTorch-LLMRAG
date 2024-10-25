@@ -1,6 +1,7 @@
 import jieba
 from rank_bm25 import BM25Okapi
 
+
 class BaseRetriever:
     def __init__(self, corpus, top_n=1):
         self.corpus = corpus
@@ -17,7 +18,6 @@ class BaseRetriever:
         
         # 找回與最佳匹配文本相對應的檔案名
         res = [key for value in ans for key, val in self.corpus.items() if val == value]
-        if self.top_n == 1:
-            return res[0]
+
         return res[:self.top_n]  # 回傳檔案名
     

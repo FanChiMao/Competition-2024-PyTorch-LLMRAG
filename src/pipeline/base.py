@@ -24,7 +24,7 @@ class BasePipeline:
     def preprocess(self):
         # 產出insurance的corpus_dict
         source_path_insurance = os.path.join(self.args.source_path, 'insurance')  # 設定參考資料路徑
-        PDFLoader_insurance = BasePDFLoader(source_path_insurance, self.insurance_pdf_pkl)    
+        PDFLoader_insurance = BasePDFLoader(source_path_insurance, self.insurance_pdf_pkl)
         self.corpus_dict_insurance = PDFLoader_insurance.load_data(use_pickle=self.use_pickle)
 
         # 產出finance的corpus_dict
@@ -71,6 +71,7 @@ class BasePipeline:
 
         # Preprocess
         self.preprocess()
+
         # Retrieve
         answer_dict = self.retrieve()        
         

@@ -5,6 +5,7 @@ import pdfplumber  # 用於從PDF文件中提取文字的工具
 import numpy as np
 from concurrent.futures import ProcessPoolExecutor
 
+
 class BasePDFLoader:
     def __init__(self, source_dir, pickle_path=None, n_jobs=16):
         self.source_dir = source_dir
@@ -23,7 +24,8 @@ class BasePDFLoader:
             pdf_files_split = np.array_split(masked_file_ls, self.n_jobs)
             
             with ProcessPoolExecutor(max_workers=self.n_jobs) as executor:
-                results = list(tqdm(executor.map(self.load_datas, pdf_files_split), total=self.n_jobs))
+                results = list(tqdm(executor.map(self.load_datas, pdf_files_split), total=self.n_jobs,
+                                    desc=f'Load {len(masked_file_ls)} PDFs from {os.path.basename(self.source_dir)} with {self.n_jobs} jobs'))
             
             for ele in results:
                 corpus_dict.update(ele)

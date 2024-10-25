@@ -84,3 +84,16 @@ def kelvin_preprocess(text):
     # [Kelvin] 歲數轉換
     #text = age_convert(text)
     return text
+
+
+########################################################################################################################
+def read_faq_data(faq_items: list) -> str:
+    text = ""
+    for item in faq_items:
+        if 'question' in item:
+            text += item['question'] + " "
+        if 'answers' in item:
+            for temp_answer in item['answers']:
+                text += temp_answer + " "
+    text = ''.join(text.splitlines())
+    return text
