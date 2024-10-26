@@ -1,5 +1,6 @@
 PyPDF2
 pdfminer.six
+jieba
 pillow
 pdf2image
 pymupdf

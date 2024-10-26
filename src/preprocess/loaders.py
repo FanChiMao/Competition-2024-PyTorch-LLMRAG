@@ -1,3 +1,5 @@
+import os.path
+
 import pdfplumber
 import pytesseract
 from src.preprocess.base import BasePDFLoader
@@ -7,6 +9,8 @@ from src.preprocess.text_process import kelvin_preprocess
 class KelvinPDFLoader(BasePDFLoader):
     def __init__(self, source_dir, pickle_path=None, n_jobs=16):
         super().__init__(source_dir, pickle_path, n_jobs)
+        if pickle_path is not None and not os.path.exists(os.path.dirname(pickle_path)):
+            os.makedirs(os.path.dirname(pickle_path), exist_ok=True)
     
     @staticmethod
     def read_pdf(pdf_loc, page_infos: list = None):
@@ -31,6 +35,8 @@ class KelvinPDFLoader(BasePDFLoader):
 class JonathanPDFLoader(BasePDFLoader):
     def __init__(self, source_dir, pickle_path=None, n_jobs=16):
         super().__init__(source_dir, pickle_path, n_jobs)
+        if pickle_path is not None and not os.path.exists(os.path.dirname(pickle_path)):
+            os.makedirs(os.path.dirname(pickle_path), exist_ok=True)
 
     @staticmethod
     def read_pdf(pdf_loc, page_infos: list = None):
@@ -54,6 +60,8 @@ class JonathanPDFLoader(BasePDFLoader):
 class TomPDFLoader(BasePDFLoader):
     def __init__(self, source_dir, pickle_path=None, n_jobs=16):
         super().__init__(source_dir, pickle_path, n_jobs)
+        if pickle_path is not None and not os.path.exists(os.path.dirname(pickle_path)):
+            os.makedirs(os.path.dirname(pickle_path), exist_ok=True)
 
     @staticmethod
     def read_pdf(pdf_loc, page_infos: list = None):
