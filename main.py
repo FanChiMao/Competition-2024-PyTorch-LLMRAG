@@ -40,17 +40,9 @@ answer_sheet_dir = os.path.join(r"C:\EdwardLee\Project\AICUP2024\dataset\prelimi
 os.makedirs(answer_sheet_dir, exist_ok=True)
 answer_sheet_path = os.path.join(answer_sheet_dir, answer_sheet)
 vector_db_save_path = os.path.join("./vector_db", text2vec_model)
-#-------------------------------------------------------------------------------------------------------------------
-# LLM model
-# gpt2 / gpt2-medium / EleutherAI/gpt-neo-1.3B / EleutherAI/gpt-neo-2.7B / bigscience/bloom-560m / huggyllama/llama-7b / t5-small / facebook/bart-base
-#                                      GPU <-- | --> CPU
-# llm_model_name = "meta-llama/Meta-Llama-3-8B"
-# llm_model_name = "EleutherAI/gpt-neo-1.3B"
 
-# llm_response_max_length = 200
 device = -1  # 0: GPU, -1: CPU  => huggyllama/llama-7b can only on CPU 😢 (at least 7*4 = 28 GB GPU RAM)
 #-------------------------------------------------------------------------------------------------------------------
-# user_question = "智邦科技股份有限公司2023年第1季的綜合損益總額是多少"
 
 def check_filename_to_target_ref(filename, ref_ids):
     filename = os.path.splitext(filename)[0]
