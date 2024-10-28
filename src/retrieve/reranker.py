@@ -9,12 +9,12 @@ class BaseReranker:
         self.chunk_size = chunk_size
         self.overlap_size = overlap_size
         self.model = None
-        self._use_reranker = False
+        self._use_reranker = False  # _use_reranker means use "reranker" or "embedder" to rerank
 
         if model_name in ["BAAI/bge-small-zh-v1.5", "BAAI/bge-base-zh-v1.5", "BAAI/bge-large-zh-v1.5", "BAAI/bge-m3"]:
             self.model = self._init_embedder_model()
             self._use_reranker = False
-        elif model_name == ["BAAI/bge-reranker-base"]:
+        elif model_name in ["BAAI/bge-reranker-base", "BAAI/bge-reranker-large"]:
             self.model = self._init_reranker_model()
             self._use_reranker = True
         else:
@@ -40,7 +40,7 @@ class BaseReranker:
 
             query_chunk_pairs = [(query, chunk_text) for chunk_text in chunk_texts]
             inputs = tokenizer(query_chunk_pairs, padding=True, truncation=True, return_tensors="pt", max_length=self.chunk_size)
-            chunk_similarities = model(**inputs, return_dict=True).logits.views(-1, )
+            chunk_similarities = model(**inputs, return_dict=True).logits.view(-1, )
             max_similarity = np.max(chunk_similarities.cpu().detach().numpy())
             doc_to_max_similarity.append(max_similarity)
 

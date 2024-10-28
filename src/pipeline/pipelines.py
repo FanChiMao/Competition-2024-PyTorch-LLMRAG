@@ -42,7 +42,7 @@ class KelvinPipeline(BasePipeline):
 
         answer_dict = {"answers": []}  # 初始化字典
 
-        for q_dict in self.qs_ref['questions']:
+        for _, q_dict in enumerate(tqdm(self.qs_ref['questions'], desc=f"Answering questions by {self.name}")):
             if q_dict['category'] == 'finance':
                 retrieved = Retriever_finance.retrieve(q_dict['query'], q_dict['source']) # 進行檢索
                 answer_dict['answers'].append({"qid": q_dict['qid'], "retrieve": retrieved}) # 將結果加入字典
@@ -61,6 +61,7 @@ class KelvinPipeline(BasePipeline):
 class JonathanPipeline(BasePipeline):
     def __init__(self, args, name='Jonathan'):
         super().__init__(args, name)
+        self.reranker_args = self.config[self.name]['reranker']
 
     def preprocess(self):
         # 產出insurance的corpus_dict
@@ -85,15 +86,13 @@ class JonathanPipeline(BasePipeline):
 
     def retrieve(self):
         # 參考自得華分析結果，將不同類別的問題分別進行檢索
-        Retriever_insurance = JonathanRetriever(self.corpus_dict_insurance, top_n=self.args.top_n)
-        Retriever_finance = JonathanRetriever(self.corpus_dict_finance, top_n=self.args.top_n)
-        Retriever_faq = JonathanRetriever(self.corpus_dict_faq, top_n=self.args.top_n)
+        Retriever_insurance = JonathanRetriever(self.corpus_dict_insurance, top_n=self.args.top_n, reranker=self.reranker_args)
+        Retriever_finance = JonathanRetriever(self.corpus_dict_finance, top_n=self.args.top_n, reranker=self.reranker_args)
+        Retriever_faq = JonathanRetriever(self.corpus_dict_faq, top_n=self.args.top_n, reranker=self.reranker_args)
 
         answer_dict = {"answers": []}  # 初始化字典
 
-
-
-        for _, q_dict in enumerate((tqdm(self.qs_ref['questions'], desc="Answering questions"))):
+        for _, q_dict in enumerate((tqdm(self.qs_ref['questions'], desc=f"Answering questions by {self.name}"))):
 
             if q_dict['category'] == 'finance':
                 retrieved = Retriever_finance.retrieve(q_dict['query'], q_dict['source'])  # 進行檢索
@@ -143,7 +142,7 @@ class TomPipeline(BasePipeline):
 
         answer_dict = {"answers": []}  # 初始化字典
 
-        for _, q_dict in enumerate((tqdm(self.qs_ref['questions'], desc="Answering questions"))):
+        for _, q_dict in enumerate((tqdm(self.qs_ref['questions'], desc=f"Answering questions by {self.name}"))):
             if q_dict['category'] == 'finance':
                 retrieved = Retriever_finance.retrieve(q_dict['query'], q_dict['source'])  # 進行檢索
                 answer_dict['answers'].append({"qid": q_dict['qid'], "retrieve": retrieved})  # 將結果加入字典

@@ -12,6 +12,17 @@ Jonathan:
   use_pickle: True
   insurance_pdf_pkl: ./data/processed_pdf_pkl/jonathan_insurance_pdf.pkl
   finance_pdf_pkl: ./data/processed_pdf_pkl/jonathan_finance_pdf.pkl
+  reranker:
+    use_reranker: True
+    # reranker name:
+    # reranker (cross-encoder): BAAI/bge-reranker-base | BAAI/bge-reranker-large
+    # embedder (bi-encoder): BAAI/bge-small-zh-v1.5 | BAAI/bge-base-zh-v1.5 | BAAI/bge-large-zh-v1.5 | BAAI/bge-m3
+    reranker_name: BAAI/bge-reranker-base
+    chunk_size: 50
+    overlap_size: 25
+
+
+
 
 Tom:
   use_pickle: True
