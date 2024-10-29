@@ -96,3 +96,28 @@ class TomPDFLoader(BasePDFLoader):
         pdf.close()  # 關閉PDF文件
 
         return pdf_text  # 返回萃取出的文本
+
+
+class EdwardPDFLoader(BasePDFLoader):
+    def __init__(self, source_dir, pickle_path=None, n_jobs=16):
+        super().__init__(source_dir, pickle_path, n_jobs)
+        if pickle_path is not None and not os.path.exists(os.path.dirname(pickle_path)):
+            os.makedirs(os.path.dirname(pickle_path), exist_ok=True)
+
+    @staticmethod
+    def read_pdf(pdf_loc, page_infos: list = None):
+        pdf = pdfplumber.open(pdf_loc)  # 打開指定的PDF文件
+
+        pages = pdf.pages[page_infos[0]:page_infos[1]] if page_infos else pdf.pages
+        pdf_text = ''
+        for _, page in enumerate(pages):  # 迴圈遍歷每一頁
+            text = page.extract_text()  # 提取頁面的文本內容
+
+            if text:
+                pdf_text += text
+
+        pdf.close()  # 關閉PDF文件
+
+        pdf_text = pdf_text.replace(" ", "").replace("\n", "").replace("\t", "").replace("\r", "")
+
+        return pdf_text  # 返回萃取出的文本

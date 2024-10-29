@@ -1,4 +1,6 @@
+import re
 import jieba_TW.jieba as jieba_tw
+
 from rank_bm25 import BM25Plus
 from src.retrieve.base import BaseRetriever
 from src.retrieve.reranker import BaseReranker
@@ -50,7 +52,7 @@ class JonathanRetriever(BaseRetriever):
 
     def retrieve(self, query, source):
         # 文字前處理 (Query rewriter)
-        # query = kelvin_preprocess(query)
+        query = kelvin_preprocess(query)
 
         filtered_corpus = [self.corpus[int(file)] for file in source]
 
@@ -78,6 +80,41 @@ class JonathanRetriever(BaseRetriever):
 class TomRetriever(BaseRetriever):
     def __init__(self, corpus, top_n=1):
         super().__init__(corpus, top_n)
+
+    def retrieve(self, query, source):
+
+        filtered_corpus = [self.corpus[int(file)] for file in source]
+
+        # [Load corpus]
+        jieba_tw.dt.cache_file = 'jieba.cache.tw'
+        jieba_tw.load_userdict("data/custom_words/user_dict.txt")
+
+        tokenized_corpus = [self._cut_words(doc) for doc in filtered_corpus]  # 將每篇文檔進行分詞
+
+        bm25 = BM25Plus(tokenized_corpus)  # 使用BM25演算法建立檢索模型
+        tokenized_query = self._cut_words(query)  # 將查詢語句進行分詞
+        top_docs = bm25.get_top_n(tokenized_query, list(filtered_corpus), n=self.top_n)  # 根據查詢語句檢索，返回最相關的文檔，其中n為可調整項
+
+        res = [key for value in top_docs for key, val in self.corpus.items() if val == value]
+
+        return res[:self.top_n]  # 回傳檔案名
+
+    @staticmethod
+    def _cut_words(corpus: str) -> list[str]:
+        result = []
+        corpus = corpus.replace(" ", "")
+        stop_word = {}.fromkeys(
+            [line.strip() for line in open(rb'./data/custom_words/stop_word.txt', encoding='utf-8')])
+
+        for word in jieba_tw.lcut_for_search(corpus, HMM=False):
+            if word != ' ' and word not in stop_word:
+                result.append(word)
+        return result
+
+
+class EdwardRetriever(BaseRetriever):
+    def __init__(self, vector_db, top_n=1):
+        super().__init__(vector_db, top_n)
 
     def retrieve(self, query, source):
 
