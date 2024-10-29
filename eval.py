@@ -50,5 +50,9 @@ if __name__ == "__main__":
     with open("wrong_answers_dict.json", 'w', encoding='utf8') as f:
         json.dump(wrong_answers, f, ensure_ascii=False, indent=4)  # 儲存檔案，確保格式和非ASCII字符
 
-    print("Precision: {:.2f} % [faq: {:.2f} %, finance: {:.2f} %, insurance: {:.2f} %]".format(precision * 100, category_precision["faq"][0] / category_precision["faq"][1] * 100, category_precision["finance"][0] / category_precision["finance"][1] * 100, category_precision["insurance"][0] / category_precision["insurance"][1] * 100))
-    print(category_precision)
+    print("| Precision(%) | faq score(%) | finance score(%) | insurance score(%) |")
+    print(f"| {precision * 100:.2f}        "
+          f"| {category_precision['faq'][0] / category_precision['faq'][1] * 100:.2f} ({category_precision['faq'][0]}/{category_precision['faq'][1]})"
+          f"| {category_precision['finance'][0] / category_precision['finance'][1] * 100:.2f} ({category_precision['finance'][0]}/{category_precision['finance'][1]})    "
+          f"| {category_precision['insurance'][0] / category_precision['insurance'][1] * 100:.2f} ({category_precision['insurance'][0]}/{category_precision['insurance'][1]})      "
+          f"|")
