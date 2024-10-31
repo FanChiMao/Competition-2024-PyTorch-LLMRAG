@@ -38,12 +38,12 @@ Edward:
   finance_pdf_pkl: None
 
   vector_db:
-    type: Chrome  # Chrome | FAISS
-    insurance_db: ./data/vector_db/insurance_db
-    finance_db: ./data/vector_db/finance_db
-    faq_db: ./data/vector_db/faq_db
+    use_db: True
+    insurance_db: ./data/vector_db/insurance
+    finance_db: ./data/vector_db/finance
+    faq_db: ./data/vector_db/faq
 
   embedder:
-    embedder_name: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
-    chunk_size: 50
-    overlap_size: 25
+    embedder_name: BAAI/bge-small-zh-v1.5
+    chunk_size: 100
+    overlap_size: 50

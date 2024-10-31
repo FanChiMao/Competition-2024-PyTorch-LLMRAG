@@ -85,6 +85,11 @@ def kelvin_preprocess(text):
     #text = age_convert(text)
     return text
 
+def edward_preprocess(text):
+    # [Kelvin] 清除特殊符號
+    text = remove_punctuation(text)
+    # text = explain_proper_noun(text)
+    return text
 
 ########################################################################################################################
 def read_faq_data(faq_items: list) -> str:

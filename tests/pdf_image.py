@@ -2,7 +2,7 @@ import pdfplumber
 import pytesseract
 
 if __name__ == '__main__':
-    file_path = "reference/finance/1.pdf"
+    file_path = "data/datasets/preliminary/finance/1.pdf"
 
     pdf = pdfplumber.open(file_path)
 

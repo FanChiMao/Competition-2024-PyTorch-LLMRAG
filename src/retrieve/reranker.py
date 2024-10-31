@@ -3,12 +3,13 @@ from sentence_transformers import SentenceTransformer, util
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 
-def chunk_document_str(text: str, chunk_size=500, overlap_size=100):
+def chunk_document_str(text: str, chunk_size=500, overlap_size=100, only_question=True):
     """
     Split (chunk) the document text for avoiding the text over the max token length of the model.
+    only_question: if True, only split the "question" content in the FAQ data.
     """
     # Only comparing the question text
-    if "question" in text:  # FAQ
+    if only_question and "question" in text:  # FAQ
         data_list = eval(text)  # change to json format
         questions = [item['question'] for item in data_list if 'question' in item]
         return questions
