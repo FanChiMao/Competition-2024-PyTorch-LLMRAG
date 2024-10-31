@@ -1,30 +1,49 @@
+########################################################################################################################
 Base:
   use_pickle: True
   insurance_pdf_pkl: ./data/processed_pdf_pkl/base_insurance_pdf.pkl
   finance_pdf_pkl: ./data/processed_pdf_pkl/base_finance_pdf.pkl
 
+########################################################################################################################
 Kelvin:
   use_pickle: True
   insurance_pdf_pkl: ./data/processed_pdf_pkl/kelvin_insurance_pdf.pkl
   finance_pdf_pkl: ./data/processed_pdf_pkl/kelvin_finance_pdf.pkl
 
+########################################################################################################################
 Jonathan:
   use_pickle: True
-  insurance_pdf_pkl: ./data/processed_pdf_pkl/jonathan_insurance_pdf.pkl
-  finance_pdf_pkl: ./data/processed_pdf_pkl/jonathan_finance_pdf.pkl
+  insurance_pdf_pkl: ./data/processed_pdf_pkl/kelvin_insurance_pdf.pkl
+  finance_pdf_pkl: ./data/processed_pdf_pkl/kelvin_finance_pdf.pkl
   reranker:
     use_reranker: True
     # reranker name:
     # reranker (cross-encoder): BAAI/bge-reranker-base | BAAI/bge-reranker-large
     # embedder (bi-encoder): BAAI/bge-small-zh-v1.5 | BAAI/bge-base-zh-v1.5 | BAAI/bge-large-zh-v1.5 | BAAI/bge-m3
-    reranker_name: BAAI/bge-reranker-base
+    reranker_name: BAAI/bge-small-zh-v1.5
     chunk_size: 50
     overlap_size: 25
 
-
-
-
+########################################################################################################################
 Tom:
   use_pickle: True
   insurance_pdf_pkl: ./data/processed_pdf_pkl/tom_insurance_pdf.pkl
   finance_pdf_pkl: ./data/processed_pdf_pkl/tom_finance_pdf.pkl
+
+########################################################################################################################
+Edward:
+  # embedding method doesn't need to be saved in pickle, vector database instead
+  use_pickle: False
+  insurance_pdf_pkl: None
+  finance_pdf_pkl: None
+
+  vector_db:
+    use_db: True
+    insurance_db: ./data/vector_db/insurance
+    finance_db: ./data/vector_db/finance
+    faq_db: ./data/vector_db/faq
+
+  embedder:
+    embedder_name: BAAI/bge-small-zh-v1.5
+    chunk_size: 100
+    overlap_size: 50

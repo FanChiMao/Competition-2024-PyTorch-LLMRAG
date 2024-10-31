@@ -1,8 +1,11 @@
+import os
+from collections import Counter, defaultdict
 import jieba_TW.jieba as jieba_tw
+
 from rank_bm25 import BM25Plus
 from src.retrieve.base import BaseRetriever
 from src.retrieve.reranker import BaseReranker
-from src.preprocess.text_process import kelvin_preprocess
+from src.preprocess.text_process import kelvin_preprocess, edward_preprocess
 
 
 class KelvinRetriever(BaseRetriever):
@@ -50,7 +53,7 @@ class JonathanRetriever(BaseRetriever):
 
     def retrieve(self, query, source):
         # 文字前處理 (Query rewriter)
-        # query = kelvin_preprocess(query)
+        query = kelvin_preprocess(query)
 
         filtered_corpus = [self.corpus[int(file)] for file in source]
 
@@ -108,3 +111,45 @@ class TomRetriever(BaseRetriever):
             if word != ' ' and word not in stop_word:
                 result.append(word)
         return result
+
+
+class EdwardRetriever(BaseRetriever):
+    def __init__(self, vector_db, db_name, top_n=1, embedder=None):
+        super().__init__(vector_db, top_n)
+        self.category = db_name
+        self.embedding_topn = max(3, top_n)
+        self.embedding_model = embedder
+        if self.embedding_model is None:
+            raise ValueError("Embedding model is required")
+
+    def retrieve(self, query, source):
+        query = edward_preprocess(query)
+        query_embedding = self.embedding_model.encode(query)
+        topk_vecs = self.corpus.query(
+            query_embeddings=query_embedding.tolist(),
+            n_results=self.embedding_topn,
+            where={"$and": [{"pid": {"$in": source}}, {"category": {"$in": [self.category]}}]}
+        )
+
+        res_list = [metadata["pid"] for metadata in topk_vecs['metadatas'][0]]  # self.find_rrf_pid(topk_vecs)
+
+        return res_list[:self.top_n]
+
+
+    @staticmethod
+    def find_rrf_pid(topk_vecs):
+        k = 60
+        # k = len(topk_vecs)
+        pids = [metadata["pid"] for metadata in topk_vecs['metadatas'][0]]
+
+        # 使用 defaultdict 來存儲每個 pid 的權重分數
+        pid_weights = defaultdict(float)
+
+        # 計算權重：每次出現計算 1/(排序+k) 分數
+        for index, pid in enumerate(pids, start=1):  # 對每個 pid 進行排序
+            pid_weights[pid] += 1 / (k + index)  # 將 1/(k+n) 加到該 pid 的權重上
+
+        sorted_pids = sorted(pid_weights.items(), key=lambda item: item[1], reverse=True)
+        sorted_pid_list = [pid for pid, weight in sorted_pids]
+
+        return sorted_pid_list
