@@ -195,10 +195,10 @@ class EdwardFileLoader(BasePDFLoader):
 
             for pid, qa_list in tqdm(pid_map_content_data.items()):
                 page_content = ""
-                for qa in qa_list:
+                for qa_num, qa in enumerate(qa_list):
                     question = qa["question"] + "\n"
                     answer = ",".join(qa["answers"])
-                    page_content = page_content + question  + answer + "\n"
+                    page_content = page_content + f"問題 {qa_num+1}: {question}"
 
                 page_content = edward_preprocess(page_content)
 
