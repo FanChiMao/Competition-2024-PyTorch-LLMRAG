@@ -1,19 +1,12 @@
 import json
 import argparse
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Process some paths and files.')
-    parser.add_argument('--groundtruth_path', type=str, default="./dataset/preliminary/ground_truths_example.json", help="path to ground truth json")  # 問題文件的路徑
-    parser.add_argument('--submission_path', type=str, default="./dataset/preliminary/BAAI/bge-small-zh-v1.5/answer_Chroma_100_50.json", help="path to submission json")  # 參考資料的路徑
-import json
-import argparse
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process some paths and files.')
     parser.add_argument('--question_path', type=str, default="./dataset/preliminary/questions_example_revision.json", help="path to question json")  # 問題文件的路徑
     parser.add_argument('--groundtruth_path', type=str, default="./dataset/preliminary/ground_truths_example_revision.json", help="path to ground truth json")  # 問題文件的路徑
-    parser.add_argument('--submission_path', type=str, default="./dataset/preliminary/BAAI/bge-small-zh-v1.5/answer_Chroma_100_50.json", help="path to submission json")  # 參考資料的路徑
+    parser.add_argument('--submission_path', type=str, default="./dataset/preliminary/BAAI/bge-small-zh-v1.5/answer_200_100_100.json", help="path to submission json")  # 參考資料的路徑
 
     args = parser.parse_args()
 

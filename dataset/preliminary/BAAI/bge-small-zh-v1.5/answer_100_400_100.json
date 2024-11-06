@@ -230,7 +230,7 @@
         },
         {
             "qid": 58,
-            "retrieve": 209
+            "retrieve": 256
         },
         {
             "qid": 59,
@@ -258,7 +258,7 @@
         },
         {
             "qid": 65,
-            "retrieve": 255
+            "retrieve": 951
         },
         {
             "qid": 66,
@@ -298,7 +298,7 @@
         },
         {
             "qid": 75,
-            "retrieve": 71
+            "retrieve": 344
         },
         {
             "qid": 76,
@@ -326,7 +326,7 @@
         },
         {
             "qid": 82,
-            "retrieve": 838
+            "retrieve": 831
         },
         {
             "qid": 83,
@@ -370,11 +370,11 @@
         },
         {
             "qid": 93,
-            "retrieve": 660
+            "retrieve": 366
         },
         {
             "qid": 94,
-            "retrieve": 291
+            "retrieve": 481
         },
         {
             "qid": 95,
@@ -386,7 +386,7 @@
         },
         {
             "qid": 97,
-            "retrieve": 579
+            "retrieve": 282
         },
         {
             "qid": 98,

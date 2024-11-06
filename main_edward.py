@@ -29,6 +29,7 @@ ref_ids = [298,
             147,
             490,
             495]
+extra_info_path = r"C:\EdwardLee\Project\AICUP2024\extra_info\finance_content_edward.json"
 #-------------------------------------------------------------------------------------------------------------------''
 text2vec_model = "BAAI/bge-small-zh-v1.5" 
 '''
@@ -41,11 +42,15 @@ sentence-transformers/paraphrase-MiniLM-L6-v2
 sentence-transformers/stsb-xlm-r-multilingual
 '''
 #-------------------------------------------------------------------------------------------------------------------
-chunk_size = 100  # maximum ? characters in each chunk
-chunk_overlap = 50
+insurance_chunk_size = 100  
+finance_chunk_size = 400  
+qa_chunk_size = 100  
+# chunk_overlap = chunk_size / 2 
 top_k = 1
 vector_db_type = "Chroma"  # FAISS / Chroma
-answer_sheet = f"answer_{vector_db_type}_{chunk_size}_{chunk_overlap}.json"
+extra_info = False
+extra = "_extra" if extra_info else ""
+answer_sheet = f"answer_{insurance_chunk_size}_{finance_chunk_size}_{qa_chunk_size}{extra}.json"
 answer_sheet_dir = os.path.join(r"C:\EdwardLee\Project\AICUP2024\dataset\preliminary", text2vec_model)
 os.makedirs(answer_sheet_dir, exist_ok=True)
 answer_sheet_path = os.path.join(answer_sheet_dir, answer_sheet)
@@ -129,7 +134,7 @@ if __name__ == '__main__':
         query = question["query"]
         category = question["category"]
 
-        vector_db_save_name = f"qid_{qid}_chunk_size_{chunk_size}_overlap_{chunk_overlap}_{vector_db_type}_DB"
+        vector_db_save_name = f"qid_{qid}_chunk_size_{insurance_chunk_size}_{finance_chunk_size}_{qa_chunk_size}_DB"
         db_path = os.path.join(vector_db_save_path, vector_db_save_name)
         os.makedirs(db_path, exist_ok=True)
         
@@ -138,10 +143,9 @@ if __name__ == '__main__':
         if not os.listdir(db_path):
             print(f">>> Split document into chunks\n")
 
-            text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
             all_docs = []
-
             if category == 'faq':
+                text_splitter = RecursiveCharacterTextSplitter(chunk_size=qa_chunk_size, chunk_overlap=qa_chunk_size/2)
                 pid_map_content_file = os.listdir(ref_dir)[0]
                 fullpath = os.path.join(ref_dir, pid_map_content_file)
                 with open(fullpath, 'r', encoding='utf-8') as file:
@@ -165,6 +169,11 @@ if __name__ == '__main__':
                     all_docs.extend(docs)
 
             else:
+                if category == "finance":
+                    text_splitter = RecursiveCharacterTextSplitter(chunk_size=finance_chunk_size, chunk_overlap=finance_chunk_size/2)
+                elif category == "insurance":
+                    text_splitter = RecursiveCharacterTextSplitter(chunk_size=insurance_chunk_size, chunk_overlap=insurance_chunk_size/2)
+
                 for pdf_file in os.listdir(ref_dir):
                     if check_filename_to_target_ref(pdf_file, ref_ids):
                         full_pdf_filepath = os.path.join(ref_dir, pdf_file)
@@ -175,12 +184,22 @@ if __name__ == '__main__':
                         print(f">>> Load PDF from file: {full_pdf_filepath}\n")
                         loader = PyPDFLoader(full_pdf_filepath)
                         documents = loader.load()
+
+                        if extra_info and category == "finance":
+                            with open(extra_info_path, 'r') as file:
+                                extra_info_dict = json.load(file)
+                                if pid in extra_info_dict:
+                                    extra_info_doc = Document(
+                                        page_content= extra_info_dict[pid],
+                                        metadata={"source": full_pdf_filepath},
+                                    )
+                                    documents.append(extra_info_doc)
                         for document in documents:
                             document.metadata['pid'] = pid
 
                             # text preprocess
                             document.page_content = edward_preprocess(document.page_content)
-
+                        
                         docs = text_splitter.split_documents(documents)
                         all_docs.extend(docs)
                 
@@ -206,7 +225,7 @@ if __name__ == '__main__':
                 raise ValueError("vector_db_type must be \"FAISS\" or \"Chroma\"\n")
             # print(divider + "\n")
 
-        query = edward_preprocess(query)
+        # query = edward_preprocess(query)
         topk_vecs = vectorstore.similarity_search(query, top_k)
         result = {
             'qid': qid,
