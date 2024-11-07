@@ -6,7 +6,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process some paths and files.')
     parser.add_argument('--question_path', type=str, default="./data/datasets/preliminary/questions_example_revision.json", help="path to question json")  # 問題文件的路徑
     parser.add_argument('--groundtruth_path', type=str, default="./data/datasets/preliminary/ground_truths_example_revision.json", help="path to ground truth json")  # 問題文件的路徑
-    parser.add_argument('--submission_path', type=str, default="./outputs/submission_edward_item.json", help="path to submission json")  # 參考資料的路徑
+    parser.add_argument('--submission_path', type=str, default="outputs/preliminary/submission_2.json", help="path to submission json")  # 參考資料的路徑
 
     args = parser.parse_args()
 
@@ -37,6 +37,9 @@ if __name__ == "__main__":
     for sub, gt in zip(submission["answers"], ground_truth["ground_truths"]):
         if sub["qid"] != gt["qid"]:
             assert ValueError(f"qid not match: {sub['qid']} != {gt['qid']}")
+
+        if isinstance(sub["retrieve"], list):  # get top 1 if it is a list (top n)
+            sub["retrieve"] = sub["retrieve"][0]
 
         if 1 <= gt["qid"] <= 50:
             if sub["retrieve"] == gt["retrieve"]:

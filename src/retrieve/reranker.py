@@ -1,9 +1,10 @@
 import numpy as np
+from collections import defaultdict
 from sentence_transformers import SentenceTransformer, util
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 
-def chunk_document_str(text: str, chunk_size=500, overlap_size=100, only_question=True):
+def chunk_document_str(text: str, chunk_size=500, overlap_size=100, only_question=False):
     """
     Split (chunk) the document text for avoiding the text over the max token length of the model.
     only_question: if True, only split the "question" content in the FAQ data.
@@ -23,6 +24,25 @@ def chunk_document_str(text: str, chunk_size=500, overlap_size=100, only_questio
         chunk_text = text[i:i + chunk_size]
         chunks.append(chunk_text)
     return chunks
+
+
+def RRF(*ranked_lists, k=60, print_score=False):
+    """
+    Perform Reciprocal Rank Fusion (RRF) on the provided ranked lists.
+    Each item in ranked_lists is a dictionary with 'id' as the document identifier.
+    """
+    rrf_scores = defaultdict(float)
+
+    for ranked_list in ranked_lists:
+        for rank, predict_id in enumerate(ranked_list):
+            doc_id = predict_id
+            rrf_scores[doc_id] += 1 / (k + rank + 1)  # Reciprocal rank calculation
+
+    if print_score:
+        print(dict(rrf_scores))
+
+    # Sort by RRF score (higher is better) and return the top_n items
+    return sorted(rrf_scores.items(), key=lambda x: x[1], reverse=True)
 
 
 class BaseReranker:
@@ -53,12 +73,12 @@ class BaseReranker:
         return tokenizer, model
 
 
-    def _rerank_with_reranker(self, query: str, top_docs: list[str]):
+    def _rerank_with_reranker(self, query: str, top_docs: list[str], only_question: bool):
         tokenizer, model = self.model
 
         doc_to_max_similarity = []
         for doc in top_docs:
-            chunk_texts = chunk_document_str(text=doc, chunk_size=self.chunk_size, overlap_size=self.overlap_size)
+            chunk_texts = chunk_document_str(text=doc, chunk_size=self.chunk_size, overlap_size=self.overlap_size, only_question=only_question)
 
             query_chunk_pairs = [(query, chunk_text) for chunk_text in chunk_texts]
             inputs = tokenizer(query_chunk_pairs, padding=True, truncation=True, return_tensors="pt", max_length=self.chunk_size)
@@ -71,12 +91,12 @@ class BaseReranker:
         return [doc[0] for doc in ranked_docs]
 
 
-    def _rerank_with_embedder(self, query: str, top_docs: list[str]):
+    def _rerank_with_embedder(self, query: str, top_docs: list[str], only_question: bool):
         query_embedding = self.model.encode(query, normalize_embeddings=True, convert_to_tensor=True)
 
         doc_to_max_similarity = []
         for doc in top_docs:
-            chunk_texts = chunk_document_str(text=doc, chunk_size=self.chunk_size, overlap_size=self.overlap_size)
+            chunk_texts = chunk_document_str(text=doc, chunk_size=self.chunk_size, overlap_size=self.overlap_size, only_question=only_question)
             chunk_embeddings = self.model.encode(chunk_texts, normalize_embeddings=True, convert_to_tensor=True)
             chunk_similarities = util.pytorch_cos_sim(query_embedding, chunk_embeddings)
 
@@ -87,8 +107,8 @@ class BaseReranker:
 
         return [doc[0] for doc in ranked_docs]
 
-    def rerank_top_docs(self, query: str, top_docs: list[str]):
+    def rerank_top_docs(self, query: str, top_docs: list[str], only_question=False):
         if self._use_reranker:
-            return self._rerank_with_reranker(query, top_docs)
+            return self._rerank_with_reranker(query, top_docs, only_question)
         else:
-            return self._rerank_with_embedder(query, top_docs)
+            return self._rerank_with_embedder(query, top_docs, only_question)

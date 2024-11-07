@@ -35,15 +35,15 @@ class BasePDFLoader:
                     pickle.dump(corpus_dict, f)
 
             return corpus_dict
-    
+
     def load_datas(self, pdf_files):
         corpus_dict = {int(os.path.basename(path).replace('.pdf', '')): self.read_pdf(path) for path in pdf_files}  # 讀取每個PDF文件的文本，並以檔案名作為鍵，文本內容作為值存入字典
         return corpus_dict
 
-    @staticmethod
+    @staticmethod  # override by different pdfloader
     def read_pdf(pdf_loc, page_infos: list = None):
         pdf = pdfplumber.open(pdf_loc)  # 打開指定的PDF文件
-        
+
         # [TODO]: 可自行用其他方法讀入資料，或是對pdf中多模態資料（表格,圖片等）進行處理
         # 如果指定了頁面範圍，則只提取該範圍的頁面，否則提取所有頁面
         pages = pdf.pages[page_infos[0]:page_infos[1]] if page_infos else pdf.pages

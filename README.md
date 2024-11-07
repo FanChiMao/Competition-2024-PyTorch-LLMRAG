@@ -93,7 +93,7 @@
     cd scripts
     2.run_baseline_code.bat
     ```
-    or run the snippet at [**./main_baseline.py**](./main_baseline.py)
+    or run the snippet at [**./main_baseline.py**](main_baseline.py)
     
     ```commandline
     python ./main_baseline.py

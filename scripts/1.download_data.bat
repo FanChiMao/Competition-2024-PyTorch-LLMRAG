@@ -1,6 +1,6 @@
 cd ..
 
-call conda activate LLMRAG
+call conda activate LLM-RAG
 
 call pip install gdown
 

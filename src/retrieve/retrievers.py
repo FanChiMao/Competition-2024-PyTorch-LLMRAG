@@ -1,5 +1,4 @@
-import os
-from collections import Counter, defaultdict
+from collections import defaultdict
 import jieba_TW.jieba as jieba_tw
 
 from rank_bm25 import BM25Plus
@@ -9,8 +8,16 @@ from src.preprocess.text_process import kelvin_preprocess, edward_preprocess
 
 
 class KelvinRetriever(BaseRetriever):
-    def __init__(self, corpus, top_n=1):
+    def __init__(self, corpus, top_n=1, reranker: dict = None):
         super().__init__(corpus, top_n)
+        self.use_reranker = False if reranker is None else True
+        if self.use_reranker:
+            self.reranker_name = reranker['reranker_name']
+            self.reranker_model = None
+            self.reranker_topn = max(3, top_n)
+            self.chunk_size = reranker['chunk_size']
+            self.overlap_size = reranker['overlap_size']
+            self.reranker_model = BaseReranker(self.reranker_name, self.chunk_size, self.overlap_size)
 
     def retrieve(self, query, source):
         # 文字前處理
@@ -19,7 +26,9 @@ class KelvinRetriever(BaseRetriever):
         filtered_corpus = [self.corpus[int(file)] for file in source]
 
         # [Kelvin] 使用金管會 + 自定義字典
-        jieba_tw.dt.cache_file = 'jieba.cache.tw'
+        jieba_tw.dt.cache_file = None
+        jieba_tw.dt.user_word_tag_tab = {}
+        jieba_tw.dt.cache_file = 'jieba.cache.tw.kelvin'
         jieba_tw.load_userdict("./data/custom_words/fsc_dict.txt")
 
         # [TODO] 可自行替換其他檢索方式，以提升效能
@@ -32,7 +41,12 @@ class KelvinRetriever(BaseRetriever):
         ans = bm25.get_top_n(tokenized_query, list(filtered_corpus), n=self.top_n)  # 根據查詢語句檢索，返回最相關的文檔，其中n為可調整項
         # 找回與最佳匹配文本相對應的檔案名
 
-        res = [key for value in ans for key, val in self.corpus.items() if val == value]
+        # [Reranker second sorting]
+        if self.use_reranker and self.reranker_model is not None:
+            reranked_top_docs = self.reranker_model.rerank_top_docs(query, ans, only_question=False)
+            res = [key for value in reranked_top_docs for key, val in self.corpus.items() if val == value]
+        else:
+            res = [key for value in ans for key, val in self.corpus.items() if val == value]
 
         return res[:self.top_n]  # 回傳檔案名
 
@@ -41,14 +55,13 @@ class JonathanRetriever(BaseRetriever):
     def __init__(self, corpus, top_n=1, reranker: dict = None):
         super().__init__(corpus, top_n)
         # reranker is the dict from yaml (see data/pipeline.yml
-        self.use_reranker = reranker['use_reranker']
-        self.reranker_name = reranker['reranker_name']
-        self.reranker_model = None
-        self.reranker_topn = max(3, top_n)
-        self.chunk_size = reranker['chunk_size']
-        self.overlap_size = reranker['overlap_size']
-
+        self.use_reranker = False if reranker is None else True
         if self.use_reranker:
+            self.reranker_name = reranker['reranker_name']
+            self.reranker_model = None
+            self.reranker_topn = max(3, top_n)
+            self.chunk_size = reranker['chunk_size']
+            self.overlap_size = reranker['overlap_size']
             self.reranker_model = BaseReranker(self.reranker_name, self.chunk_size, self.overlap_size)
 
     def retrieve(self, query, source):
@@ -58,7 +71,10 @@ class JonathanRetriever(BaseRetriever):
         filtered_corpus = [self.corpus[int(file)] for file in source]
 
         # [Load corpus]
-        jieba_tw.dt.cache_file = 'jieba.cache.tw'
+        jieba_tw.dt.cache_file = None
+        jieba_tw.dt.user_word_tag_tab = {}
+        jieba_tw.dt.cache_file = 'jieba.cache.tw.jonathan'
+        jieba_tw.load_userdict("./data/custom_words/fsc_dict.txt")  # from Kelvin
         jieba_tw.load_userdict("data/custom_words/user_dict.txt")  # from Tom
         jieba_tw.load_userdict("data/custom_words/insurance_words.txt")  # from Jonathan
 
@@ -66,11 +82,11 @@ class JonathanRetriever(BaseRetriever):
         tokenized_corpus = [list(jieba_tw.lcut_for_search(doc)) for doc in filtered_corpus]  # 將每篇文檔進行分詞
         bm25 = BM25Plus(tokenized_corpus)  # 使用BM25演算法建立檢索模型
         tokenized_query = list(jieba_tw.lcut_for_search(query))  # 將查詢語句進行分詞
-        top_docs = bm25.get_top_n(tokenized_query, list(filtered_corpus), n=self.reranker_topn)
+        top_docs = bm25.get_top_n(tokenized_query, list(filtered_corpus), n=self.top_n)
 
         # [Reranker second sorting]
         if self.use_reranker and self.reranker_model is not None:
-            reranked_top_docs = self.reranker_model.rerank_top_docs(query, top_docs)
+            reranked_top_docs = self.reranker_model.rerank_top_docs(query, top_docs, only_question=True)
             res = [key for value in reranked_top_docs for key, val in self.corpus.items() if val == value]
         else:
             res = [key for value in top_docs for key, val in self.corpus.items() if val == value]
@@ -79,15 +95,25 @@ class JonathanRetriever(BaseRetriever):
 
 
 class TomRetriever(BaseRetriever):
-    def __init__(self, corpus, top_n=1):
+    def __init__(self, corpus, top_n=1, reranker: dict = None):
         super().__init__(corpus, top_n)
+        self.use_reranker = False if reranker is None else True
+        if self.use_reranker:
+            self.reranker_name = reranker['reranker_name']
+            self.reranker_model = None
+            self.reranker_topn = max(3, top_n)
+            self.chunk_size = reranker['chunk_size']
+            self.overlap_size = reranker['overlap_size']
+            self.reranker_model = BaseReranker(self.reranker_name, self.chunk_size, self.overlap_size)
 
     def retrieve(self, query, source):
 
         filtered_corpus = [self.corpus[int(file)] for file in source]
 
         # [Load corpus]
-        jieba_tw.dt.cache_file = 'jieba.cache.tw'
+        jieba_tw.dt.cache_file = None
+        jieba_tw.dt.user_word_tag_tab = {}
+        jieba_tw.dt.cache_file = 'jieba.cache.tw.tom'
         jieba_tw.load_userdict("data/custom_words/user_dict.txt")
 
         tokenized_corpus = [self._cut_words(doc) for doc in filtered_corpus]  # 將每篇文檔進行分詞
@@ -96,7 +122,12 @@ class TomRetriever(BaseRetriever):
         tokenized_query = self._cut_words(query)  # 將查詢語句進行分詞
         top_docs = bm25.get_top_n(tokenized_query, list(filtered_corpus), n=self.top_n)  # 根據查詢語句檢索，返回最相關的文檔，其中n為可調整項
 
-        res = [key for value in top_docs for key, val in self.corpus.items() if val == value]
+        # [Reranker second sorting]
+        if self.use_reranker and self.reranker_model is not None:
+            reranked_top_docs = self.reranker_model.rerank_top_docs(query, top_docs, only_question=False)
+            res = [key for value in reranked_top_docs for key, val in self.corpus.items() if val == value]
+        else:
+            res = [key for value in top_docs for key, val in self.corpus.items() if val == value]
 
         return res[:self.top_n]  # 回傳檔案名
 
@@ -131,25 +162,6 @@ class EdwardRetriever(BaseRetriever):
             where={"$and": [{"pid": {"$in": source}}, {"category": {"$in": [self.category]}}]}
         )
 
-        res_list = [metadata["pid"] for metadata in topk_vecs['metadatas'][0]]  # self.find_rrf_pid(topk_vecs)
+        res_list = [metadata["pid"] for metadata in topk_vecs['metadatas'][0]]
 
         return res_list[:self.top_n]
-
-
-    @staticmethod
-    def find_rrf_pid(topk_vecs):
-        k = 60
-        # k = len(topk_vecs)
-        pids = [metadata["pid"] for metadata in topk_vecs['metadatas'][0]]
-
-        # 使用 defaultdict 來存儲每個 pid 的權重分數
-        pid_weights = defaultdict(float)
-
-        # 計算權重：每次出現計算 1/(排序+k) 分數
-        for index, pid in enumerate(pids, start=1):  # 對每個 pid 進行排序
-            pid_weights[pid] += 1 / (k + index)  # 將 1/(k+n) 加到該 pid 的權重上
-
-        sorted_pids = sorted(pid_weights.items(), key=lambda item: item[1], reverse=True)
-        sorted_pid_list = [pid for pid, weight in sorted_pids]
-
-        return sorted_pid_list

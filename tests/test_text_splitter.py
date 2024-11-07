@@ -8,15 +8,6 @@ from src.preprocess.text_process import edward_preprocess
 from src.retrieve.reranker import chunk_document_str
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter, CharacterTextSplitter
-from langchain_experimental.text_splitter import SemanticChunker
-from langchain_community.document_loaders import PyPDFLoader, TextLoader
-from langchain_community.vectorstores import FAISS
-from langchain_chroma import Chroma
-from langchain.chains import RetrievalQA
-from langchain_huggingface import HuggingFaceEmbeddings, HuggingFacePipeline
-from langchain_openai.embeddings import OpenAIEmbeddings
-from langchain.chains import ReduceDocumentsChain
-from langchain.prompts import PromptTemplate
 from langchain_core.documents import Document
 
 

@@ -1,9 +1,7 @@
 import os
-import re
 import json
 import pdfplumber
 from PyPDF2 import PdfReader
-import pytesseract
 import chromadb
 
 from tqdm import tqdm
@@ -12,6 +10,7 @@ from src.preprocess.base import BasePDFLoader
 from src.preprocess.text_process import kelvin_preprocess, edward_preprocess
 from src.retrieve.reranker import chunk_document_str
 
+from data.additional_info.info import finance_image_id_list, finance_table_id_list, finance_additional_info_dict
 
 class KelvinPDFLoader(BasePDFLoader):
     def __init__(self, source_dir, pickle_path=None, n_jobs=16):
@@ -36,6 +35,16 @@ class KelvinPDFLoader(BasePDFLoader):
 
         pdf.close()  # 關閉PDF文件
 
+        # process finance pdf by additional info
+        file_id = int(os.path.basename(pdf_loc).replace('.pdf', ''))
+        if "finance" in pdf_loc:
+            if file_id in finance_image_id_list:
+                extra_image_info = finance_additional_info_dict[str(file_id)]
+                pdf_text += extra_image_info
+            elif file_id in finance_table_id_list:
+                extra_table_info = finance_additional_info_dict[str(file_id)]
+                pdf_text += extra_table_info
+
         return pdf_text  # 返回萃取出的文本
 
 
@@ -58,6 +67,16 @@ class JonathanPDFLoader(BasePDFLoader):
                 pdf_text += text
 
         pdf.close()  # 關閉PDF文件
+
+        # process finance pdf by additional info
+        file_id = int(os.path.basename(pdf_loc).replace('.pdf', ''))
+        if "finance" in pdf_loc:
+            if file_id in finance_image_id_list:
+                extra_image_info = finance_additional_info_dict[str(file_id)]
+                pdf_text += extra_image_info
+            elif file_id in finance_table_id_list:
+                extra_table_info = finance_additional_info_dict[str(file_id)]
+                pdf_text += extra_table_info
 
         pdf_text = pdf_text.replace(" ", "").replace("\n", "").replace("\t", "").replace("\r", "")
 
@@ -84,23 +103,18 @@ class TomPDFLoader(BasePDFLoader):
             if text:
                 text = ''.join(text.splitlines())
                 pdf_text += text
-            # 20241025 Jonathan OCR 失敗 先省略 😢
-            # else:
-            #     # 使用 OCR 方式擷取頁面文字
-            #     image = page.to_image(resolution=500)  # 提取頁面的文本畫面
-            #     ocr_text = pytesseract.image_to_string(image.original, lang='chi_tra', config="--psm 12")
-            #     if ocr_text:
-            #         ocr_text = ''.join(ocr_text.replace(" ", "").splitlines())
-            #         pdf_text += ocr_text
-
-            # only use OCR
-            # image = page.to_image(resolution=500)  # 提取頁面的文本畫面
-            # ocr_text = pytesseract.image_to_string(image.original, lang='chi_tra', config="--psm 12")
-            # if ocr_text:
-            #     ocr_text = ''.join(ocr_text.replace(" ", "").splitlines())
-            #     pdf_text += ocr_text
 
         pdf.close()  # 關閉PDF文件
+
+        # process finance pdf by additional info
+        file_id = int(os.path.basename(pdf_loc).replace('.pdf', ''))
+        if "finance" in pdf_loc:
+            if file_id in finance_image_id_list:
+                extra_image_info = finance_additional_info_dict[str(file_id)]
+                pdf_text += extra_image_info
+            elif file_id in finance_table_id_list:
+                extra_table_info = finance_additional_info_dict[str(file_id)]
+                pdf_text += extra_table_info
 
         return pdf_text  # 返回萃取出的文本
 
@@ -131,6 +145,16 @@ class EdwardFileLoader(BasePDFLoader):
             page_text = page.extract_text()  # Extract text from the page
             if page_text:  # Ensure the page contains text
                 pdf_text += page_text + "\n"  # Add a newline for separation between pages
+
+        # process finance pdf by additional info
+        file_id = int(os.path.basename(pdf_loc).replace('.pdf', ''))
+        if "finance" in pdf_loc:
+            if file_id in finance_image_id_list:
+                extra_image_info = finance_additional_info_dict[str(file_id)]
+                pdf_text += extra_image_info
+            elif file_id in finance_table_id_list:
+                extra_table_info = finance_additional_info_dict[str(file_id)]
+                pdf_text += extra_table_info
 
         return pdf_text  # 返回萃取出的文本
 

@@ -1,4 +1,5 @@
 PyPDF2
+PyYAML
 pdfminer.six
 jieba
 pillow

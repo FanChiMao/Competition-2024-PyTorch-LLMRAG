@@ -15,7 +15,7 @@ class BasePipeline:
         self.load_yaml()
         
     def load_yaml(self):
-        with open(self.args.yaml, 'r') as f:
+        with open(self.args.yaml, 'r', encoding="utf-8") as f:
             self.config = yaml.safe_load(f)
         self.use_pickle = self.config[self.name]['use_pickle']
         self.insurance_pdf_pkl = self.config[self.name]['insurance_pdf_pkl']

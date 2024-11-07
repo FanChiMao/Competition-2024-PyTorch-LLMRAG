@@ -1,54 +1,42 @@
 ########################################################################################################################
 # 📜 config for shared arguments
-########################################################################################################################
 Reranker:
-  use_reranker: True
-  # reranker name:
-  # reranker (cross-encoder): BAAI/bge-reranker-base | BAAI/bge-reranker-large
+  # support reranker name:
+  # reranker (cross-encoder): BAAI/bge-reranker-base -> At least 10 GB of RAM is required to run this model (or use CPU)
   # embedder (bi-encoder): BAAI/bge-small-zh-v1.5 | BAAI/bge-base-zh-v1.5 | BAAI/bge-large-zh-v1.5 | BAAI/bge-m3
   reranker_name: BAAI/bge-small-zh-v1.5
-  chunk_size: 50
-  overlap_size: 25
-
-Additional_info:
-  use_additional_info: True
-  additional_json_path: ./data/additional_info/finance_image_contents.json
+  chunk_size: 100
+  overlap_size: 50
 
 ########################################################################################################################
 # 📑 config for each different pipeline
-########################################################################################################################
 Base:
   use_pickle: True
   insurance_pdf_pkl: ./data/processed_pdf_pkl/base_insurance_pdf.pkl
   finance_pdf_pkl: ./data/processed_pdf_pkl/base_finance_pdf.pkl
 
-########################################################################################################################
+#----------------------------------------------------------------------------------------------------------------------#
 Kelvin:
   use_pickle: True
   insurance_pdf_pkl: ./data/processed_pdf_pkl/kelvin_insurance_pdf.pkl
   finance_pdf_pkl: ./data/processed_pdf_pkl/kelvin_finance_pdf.pkl
+  use_reranker: True
 
-########################################################################################################################
+#----------------------------------------------------------------------------------------------------------------------#
 Jonathan:
   use_pickle: True
-  insurance_pdf_pkl: ./data/processed_pdf_pkl/kelvin_insurance_pdf.pkl
-  finance_pdf_pkl: ./data/processed_pdf_pkl/kelvin_finance_pdf.pkl
-  reranker:
-    use_reranker: True
-    # reranker name:
-    # reranker (cross-encoder): BAAI/bge-reranker-base | BAAI/bge-reranker-large
-    # embedder (bi-encoder): BAAI/bge-small-zh-v1.5 | BAAI/bge-base-zh-v1.5 | BAAI/bge-large-zh-v1.5 | BAAI/bge-m3
-    reranker_name: BAAI/bge-small-zh-v1.5
-    chunk_size: 50
-    overlap_size: 25
+  insurance_pdf_pkl: ./data/processed_pdf_pkl/jonathan_insurance_pdf.pkl
+  finance_pdf_pkl: ./data/processed_pdf_pkl/jonathan_finance_pdf.pkl
+  use_reranker: True
 
-########################################################################################################################
+#----------------------------------------------------------------------------------------------------------------------#
 Tom:
   use_pickle: True
   insurance_pdf_pkl: ./data/processed_pdf_pkl/tom_insurance_pdf.pkl
   finance_pdf_pkl: ./data/processed_pdf_pkl/tom_finance_pdf.pkl
+  use_reranker: True
 
-########################################################################################################################
+#----------------------------------------------------------------------------------------------------------------------#
 Edward:
   # embedding method doesn't need to be saved in pickle, vector database instead
   use_pickle: False
@@ -65,3 +53,5 @@ Edward:
     embedder_name: BAAI/bge-small-zh-v1.5
     chunk_size: 100
     overlap_size: 50
+
+########################################################################################################################

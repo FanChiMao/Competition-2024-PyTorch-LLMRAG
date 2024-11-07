@@ -6,7 +6,6 @@ from tqdm import tqdm
 from src.preprocess.loaders import KelvinPDFLoader, JonathanPDFLoader, TomPDFLoader, EdwardFileLoader
 from src.retrieve.retrievers import KelvinRetriever, JonathanRetriever, TomRetriever, EdwardRetriever
 from src.preprocess.text_process import kelvin_preprocess, edward_preprocess, read_faq_data
-from src.retrieve.reranker import chunk_document_str
 from src.pipeline.base import BasePipeline
 
 from sentence_transformers import SentenceTransformer
@@ -16,6 +15,7 @@ from sentence_transformers import SentenceTransformer
 class KelvinPipeline(BasePipeline):
     def __init__(self, args, name='Kelvin'):
         super().__init__(args, name)
+        self.reranker_args = self.config['Reranker'] if self.config[name]['use_reranker'] else None
 
     def preprocess(self):
         # 產出insurance的corpus_dict
@@ -40,9 +40,9 @@ class KelvinPipeline(BasePipeline):
 
     def retrieve(self):
         # 參考自得華分析結果，將不同類別的問題分別進行檢索
-        Retriever_insurance = KelvinRetriever(self.corpus_dict_insurance, top_n=self.args.top_n)
-        Retriever_finance = KelvinRetriever(self.corpus_dict_finance, top_n=self.args.top_n)
-        Retriever_faq = KelvinRetriever(self.corpus_dict_faq, top_n=self.args.top_n)
+        Retriever_insurance = KelvinRetriever(self.corpus_dict_insurance, top_n=self.args.top_n, reranker=self.reranker_args)
+        Retriever_finance = KelvinRetriever(self.corpus_dict_finance, top_n=self.args.top_n, reranker=self.reranker_args)
+        Retriever_faq = KelvinRetriever(self.corpus_dict_faq, top_n=self.args.top_n, reranker=self.reranker_args)
 
         answer_dict = {"answers": []}  # 初始化字典
 
@@ -65,8 +65,7 @@ class KelvinPipeline(BasePipeline):
 class JonathanPipeline(BasePipeline):
     def __init__(self, args, name='Jonathan'):
         super().__init__(args, name)
-        # see ./data/pipeline.yml
-        self.reranker_args = self.config[self.name]['reranker']
+        self.reranker_args = self.config['Reranker'] if self.config[name]['use_reranker'] else None
 
     def preprocess(self):
         # 產出insurance的corpus_dict
@@ -117,6 +116,7 @@ class JonathanPipeline(BasePipeline):
 class TomPipeline(BasePipeline):
     def __init__(self, args, name='Tom'):
         super().__init__(args, name)
+        self.reranker_args = self.config['Reranker'] if self.config[name]['use_reranker'] else None
 
     def preprocess(self):
         # 產出insurance的corpus_dict
@@ -141,9 +141,9 @@ class TomPipeline(BasePipeline):
 
     def retrieve(self):
         # 參考自得華分析結果，將不同類別的問題分別進行檢索
-        Retriever_insurance = TomRetriever(self.corpus_dict_insurance, top_n=self.args.top_n)
-        Retriever_finance = TomRetriever(self.corpus_dict_finance, top_n=self.args.top_n)
-        Retriever_faq = TomRetriever(self.corpus_dict_faq, top_n=self.args.top_n)
+        Retriever_insurance = TomRetriever(self.corpus_dict_insurance, top_n=self.args.top_n, reranker=self.reranker_args)
+        Retriever_finance = TomRetriever(self.corpus_dict_finance, top_n=self.args.top_n, reranker=self.reranker_args)
+        Retriever_faq = TomRetriever(self.corpus_dict_faq, top_n=self.args.top_n, reranker=self.reranker_args)
 
         answer_dict = {"answers": []}  # 初始化字典
 
