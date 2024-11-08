@@ -4,7 +4,7 @@ from pathlib import Path
 def cut_words(corpus: str) -> list[str]:
     result = []
     corpus = corpus.replace(" ", "")
-    stop_word = {}.fromkeys([line.strip() for line in open(Path("./reference/stop_word.txt"), "r+", encoding='utf-8')])
+    stop_word = {}.fromkeys([line.strip() for line in open(Path("../reference/stop_word.txt"), "r+", encoding='utf-8')])
 
     for word in jieba.lcut_for_search(corpus, HMM=False):
         if word != ' ' and word not in stop_word:
