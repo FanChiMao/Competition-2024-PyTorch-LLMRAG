@@ -11,6 +11,7 @@ from src.preprocess.text_process import kelvin_preprocess, edward_preprocess
 from src.retrieve.reranker import chunk_document_str
 
 from data.additional_info.info import finance_image_id_list, finance_table_id_list, finance_additional_info_dict
+from data.additional_info.info import processed_messy_table_id_list, messy_table_additional_dict
 
 class KelvinPDFLoader(BasePDFLoader):
     def __init__(self, source_dir, pickle_path=None, n_jobs=16):
@@ -22,21 +23,27 @@ class KelvinPDFLoader(BasePDFLoader):
     def read_pdf(pdf_loc, page_infos: list = None):
         pdf = pdfplumber.open(pdf_loc)  # 打開指定的PDF文件
 
-        # [TODO]: 可自行用其他方法讀入資料，或是對pdf中多模態資料（表格,圖片等）進行處理
+        file_id = int(os.path.basename(pdf_loc).replace('.pdf', ''))
+        page_id_list = []
+        if "finance" in pdf_loc and file_id in processed_messy_table_id_list:
+            messy_table_data = messy_table_additional_dict[str(file_id)]
+            page_id_list = [int(key) for key in messy_table_data]
+
         # 如果指定了頁面範圍，則只提取該範圍的頁面，否則提取所有頁面
         pages = pdf.pages[page_infos[0]:page_infos[1]] if page_infos else pdf.pages
         pdf_text = ''
-        for _, page in enumerate(pages):  # 迴圈遍歷每一頁
+        for i, page in enumerate(pages):  # 迴圈遍歷每一頁
             text = page.extract_text()  # 提取頁面的文本內容
 
             if text:
                 text = kelvin_preprocess(text)
                 pdf_text += text
+                if "finance" in pdf_loc and (i + 1) in page_id_list:
+                    pdf_text += messy_table_data[str(i + 1)] + "\n"
 
         pdf.close()  # 關閉PDF文件
 
         # process finance pdf by additional info
-        file_id = int(os.path.basename(pdf_loc).replace('.pdf', ''))
         if "finance" in pdf_loc:
             if file_id in finance_image_id_list:
                 extra_image_info = finance_additional_info_dict[str(file_id)]
@@ -58,18 +65,25 @@ class JonathanPDFLoader(BasePDFLoader):
     def read_pdf(pdf_loc, page_infos: list = None):
         pdf = pdfplumber.open(pdf_loc)  # 打開指定的PDF文件
 
+        file_id = int(os.path.basename(pdf_loc).replace('.pdf', ''))
+        page_id_list = []
+        if "finance" in pdf_loc and file_id in processed_messy_table_id_list:
+            messy_table_data = messy_table_additional_dict[str(file_id)]
+            page_id_list = [int(key) for key in messy_table_data]
+
         pages = pdf.pages[page_infos[0]:page_infos[1]] if page_infos else pdf.pages
         pdf_text = ''
-        for _, page in enumerate(pages):  # 迴圈遍歷每一頁
+        for i, page in enumerate(pages):  # 迴圈遍歷每一頁
             text = page.extract_text()  # 提取頁面的文本內容
 
             if text:
                 pdf_text += text
+                if "finance" in pdf_loc and (i + 1) in page_id_list:
+                    pdf_text += messy_table_data[str(i + 1)] + "\n"
 
         pdf.close()  # 關閉PDF文件
 
         # process finance pdf by additional info
-        file_id = int(os.path.basename(pdf_loc).replace('.pdf', ''))
         if "finance" in pdf_loc:
             if file_id in finance_image_id_list:
                 extra_image_info = finance_additional_info_dict[str(file_id)]
@@ -93,21 +107,26 @@ class TomPDFLoader(BasePDFLoader):
     def read_pdf(pdf_loc, page_infos: list = None):
         pdf = pdfplumber.open(pdf_loc)  # 打開指定的PDF文件
 
-        # TODO: 可自行用其他方法讀入資料，或是對pdf中多模態資料（表格,圖片等）進行處理
+        file_id = int(os.path.basename(pdf_loc).replace('.pdf', ''))
+        page_id_list = []
+        if "finance" in pdf_loc and file_id in processed_messy_table_id_list:
+            messy_table_data = messy_table_additional_dict[str(file_id)]
+            page_id_list = [int(key) for key in messy_table_data]
 
         # 如果指定了頁面範圍，則只提取該範圍的頁面，否則提取所有頁面
         pages = pdf.pages[page_infos[0]:page_infos[1]] if page_infos else pdf.pages
         pdf_text = ''
-        for _, page in enumerate(pages):  # 迴圈遍歷每一頁
+        for i, page in enumerate(pages):  # 迴圈遍歷每一頁
             text = page.extract_text()  # 提取頁面的文本內容
             if text:
                 text = ''.join(text.splitlines())
                 pdf_text += text
+                if "finance" in pdf_loc and (i + 1) in page_id_list:
+                    pdf_text += messy_table_data[str(i + 1)] + "\n"
 
         pdf.close()  # 關閉PDF文件
 
         # process finance pdf by additional info
-        file_id = int(os.path.basename(pdf_loc).replace('.pdf', ''))
         if "finance" in pdf_loc:
             if file_id in finance_image_id_list:
                 extra_image_info = finance_additional_info_dict[str(file_id)]
@@ -140,14 +159,23 @@ class EdwardFileLoader(BasePDFLoader):
     @staticmethod
     def read_pdf(pdf_loc, page_infos: list = None):
         reader = PdfReader(pdf_loc)
+
+        file_id = int(os.path.basename(pdf_loc).replace('.pdf', ''))
+
+        page_id_list = []
+        if "finance" in pdf_loc and file_id in processed_messy_table_id_list:
+            messy_table_data = messy_table_additional_dict[str(file_id)]
+            page_id_list = [int(key) for key in messy_table_data]
+
         pdf_text = ""
-        for page in reader.pages:
+        for i, page in enumerate(reader.pages):
             page_text = page.extract_text()  # Extract text from the page
             if page_text:  # Ensure the page contains text
                 pdf_text += page_text + "\n"  # Add a newline for separation between pages
+                if "finance" in pdf_loc and (i + 1) in page_id_list:
+                    pdf_text += messy_table_data[str(i + 1)] + "\n"
 
         # process finance pdf by additional info
-        file_id = int(os.path.basename(pdf_loc).replace('.pdf', ''))
         if "finance" in pdf_loc:
             if file_id in finance_image_id_list:
                 extra_image_info = finance_additional_info_dict[str(file_id)]

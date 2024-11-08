@@ -69,6 +69,11 @@ if __name__ == "__main__":
     args = parser.parse_args()  # 解析參數
 
     # inference with each pipeline
+    answer_dict_edward = EdwardPipeline(args).run()
+    if args.save_each_result:
+        with open(args.output_path.replace(f".json", f"_edward_top{args.top_n}.json"), 'w', encoding='utf8') as f:
+            json.dump(answer_dict_edward, f, ensure_ascii=False, indent=4)
+
     answer_dict_kelvin = KelvinPipeline(args).run()
     if args.save_each_result:
         with open(args.output_path.replace(f".json", f"_kelvin_top{args.top_n}.json"), 'w', encoding='utf8') as f:
@@ -84,16 +89,10 @@ if __name__ == "__main__":
         with open(args.output_path.replace(f".json", f"_tom_top{args.top_n}.json"), 'w', encoding='utf8') as f:
             json.dump(answer_dict_tom, f, ensure_ascii=False, indent=4)
 
-    answer_dict_edward = EdwardPipeline(args).run()
-    if args.save_each_result:
-        with open(args.output_path.replace(f".json", f"_edward_top{args.top_n}.json"), 'w', encoding='utf8') as f:
-            json.dump(answer_dict_tom, f, ensure_ascii=False, indent=4)
-
-
     final_answers = {"answers": []}
-    for a_kelvin, a_jonathan, a_tom in zip(answer_dict_kelvin["answers"], answer_dict_jonathan["answers"], answer_dict_tom["answers"]):
+    for a_kelvin, a_jonathan, a_tom, a_edward in zip(answer_dict_kelvin["answers"], answer_dict_jonathan["answers"], answer_dict_tom["answers"], answer_dict_edward['answers']):
         # use RRF method to fuse each pipeline's top_n results
-        top_n_lists = [a_kelvin["retrieve"], a_jonathan["retrieve"], a_tom["retrieve"]]
+        top_n_lists = [a_kelvin["retrieve"], a_jonathan["retrieve"], a_tom["retrieve"], a_edward["retrieve"]]
         rrf_fused_list = RRF(*top_n_lists, k=args.top_n)[:args.top_n]
         fused_answer = {"qid": a_kelvin['qid'], "retrieve": rrf_fused_list[0][0]}
         final_answers["answers"].append(fused_answer)

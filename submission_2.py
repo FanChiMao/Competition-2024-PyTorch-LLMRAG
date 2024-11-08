@@ -72,8 +72,6 @@ if __name__ == "__main__":
         with open(args.output_path.replace(f".json", f"_tom_top{args.top_n}.json"), 'w', encoding='utf8') as f:
             json.dump(answer_dict_tom, f, ensure_ascii=False, indent=4)
 
-
-
     final_answers = {"answers": []}
     for a_kelvin, a_jonathan, a_tom in zip(answer_dict_kelvin["answers"], answer_dict_jonathan["answers"], answer_dict_tom["answers"]):
         # use RRF method to fuse each pipeline's top_n results
