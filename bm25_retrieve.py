@@ -1,13 +1,20 @@
 import os
 import json
 import argparse
+import re
+from statistics import fmean
 
+from time import perf_counter
 from tqdm import tqdm
 import jieba  # 用於中文文本分詞
 import pdfplumber  # 用於從PDF文件中提取文字的工具
 from rank_bm25 import BM25Plus # 使用BM25演算法進行文件檢索
 
 import pytesseract
+
+from text2vec import SentenceModel, semantic_search
+
+embedder = SentenceModel("shibing624/text2vec-base-chinese-sentence")
 
 # 載入參考資料，返回一個字典，key為檔案名稱，value為PDF檔內容的文本
 def load_data(source_path):
@@ -81,6 +88,40 @@ def read_faq_data(faq_items: list) -> str:
     text = ''.join(text.splitlines())
     return text
 
+def text2vec_process(query: str, candidate_corpus: list[str]) -> str:
+    best_index = 0
+    best_similarity = 0
+    chunk_size = 100
+    overlap_size = 50
+
+    query_embedding = embedder.encode(query)
+    for index, candidate in enumerate(candidate_corpus):
+        # if len(candidate) < 200:
+        #     temp_chunks = [candidate]
+        # else:
+        #     temp_chunks = [candidate[i:i + chunk_size] for i in range(0, len(candidate), chunk_size - overlap_size)]
+        modify_candidate = ''.join(candidate.replace(" ", "").splitlines())
+        sentence = list(filter(None, re.split('[.。,，;；?？]', modify_candidate)))
+        temp_chunks = sentence
+        # temp_chunks = [''.join(sentence[i:i + 1]) for i in range(0, len(sentence), 1 - 0)]
+
+        corpus_embeddings = embedder.encode(temp_chunks)
+        hits = semantic_search(query_embedding, corpus_embeddings, top_k=1)
+        current_mean_similarity_score = [hit["score"] for hit in hits[0]]
+        current_similarity = fmean(current_mean_similarity_score)
+        if current_similarity > best_similarity:
+            best_index = index
+            best_similarity = current_similarity
+
+    if best_similarity < 0.9:
+        best_index = 0
+    # base on whole paragraph
+    # corpus_embeddings = embedder.encode(candidate_corpus)
+    # hits = semantic_search(query_embedding, corpus_embeddings, top_k=1)
+    # best_index = hits[0][0]["corpus_id"]
+
+    return candidate_corpus[best_index]
+
 # 根據查詢語句和指定的來源，檢索答案
 def BM25_retrieve(qs, source, corpus_dict):
     filtered_corpus = [corpus_dict[int(file)] for file in source]
@@ -91,8 +132,10 @@ def BM25_retrieve(qs, source, corpus_dict):
 
     bm25 = BM25Plus(tokenized_corpus)  # 使用BM25演算法建立檢索模型
     tokenized_query = cut_words(qs)  # 將查詢語句進行分詞
-    ans = bm25.get_top_n(tokenized_query, list(filtered_corpus), n=1)  # 根據查詢語句檢索，返回最相關的文檔，其中n為可調整項
-    a = ans[0]
+    ans = bm25.get_top_n(tokenized_query, list(filtered_corpus), n=3)  # 根據查詢語句檢索，返回最相關的文檔，其中n為可調整項
+    a = text2vec_process(qs, ans)
+    if ans[0] != a:
+        pass
     # 找回與最佳匹配文本相對應的檔案名
     res = [key for key, value in corpus_dict.items() if value == a]
     return res[0]  # 回傳檔案名
@@ -106,6 +149,8 @@ if __name__ == "__main__":
     parser.add_argument('--output_path', type=str, required=True, help='輸出符合參賽格式的答案路徑')  # 答案輸出的路徑
 
     args = parser.parse_args()  # 解析參數
+
+    start_time = perf_counter()
 
     # 初始化套件資訊
     jieba.initialize()
@@ -150,7 +195,9 @@ if __name__ == "__main__":
         with open("corpus_dict/faq_corpus_dict.json", 'w', encoding='utf8') as f:
             json.dump(key_to_source_dict, f, ensure_ascii=False, indent=4)  # 儲存檔案，確保格式和非ASCII字符
 
-    for q_dict in qs_ref['questions']:
+    for q_dict in tqdm(qs_ref['questions']):
+        if (len(answer_dict['answers']) >= 143):
+            pass
         if q_dict['category'] == 'finance':
             # 進行檢索
             retrieved = BM25_retrieve(q_dict['query'], q_dict['source'], corpus_dict_finance)
@@ -172,3 +219,5 @@ if __name__ == "__main__":
     # 將答案字典保存為json文件
     with open(args.output_path, 'w', encoding='utf8') as f:
         json.dump(answer_dict, f, ensure_ascii=False, indent=4)  # 儲存檔案，確保格式和非ASCII字符
+
+    print(f"execution time: {perf_counter() - start_time:.2f}s")
