@@ -3,3 +3,5 @@ tqdm
 rank_bm25
 jieba
 pytesseract
+text2vec
+sentence-transformers

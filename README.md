@@ -4,6 +4,11 @@
 pip install -r ./requirements.txt
 ```
 
+## install torch
+```commandline
+conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+```
+
 ## install tesseract
 - [tesseract installation](https://tesseract-ocr.github.io/tessdoc/Installation.html)
 - 需要新增系統變數 `編輯系統環境變數 > 環境變數 > 系統變數 > PATH > 加入 C:\Program Files\Tesseract-OCR`
