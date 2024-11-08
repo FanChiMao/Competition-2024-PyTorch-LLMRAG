@@ -41,7 +41,7 @@ if __name__ == "__main__":
             # print(gt["qid"], gt["category"], sub["retrieve"])
         else:
             # print(gt["qid"], gt["category"], sub["retrieve"])
-            wrong_answers[gt["category"]].append({gt["qid"]: sub["retrieve"]})
+            wrong_answers[gt["category"]].append({gt["qid"]: {"predict": sub["retrieve"], "answer": gt["retrieve"]}})
 
         category_precision[gt["category"]][1] += 1
 
