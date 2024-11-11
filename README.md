@@ -9,7 +9,7 @@
 
 - [**玉山人工智慧公開挑戰賽－RAG與LLM在金融問答的應用**](https://tbrain.trendmicro.com.tw/Competitions/Details/37)  
 
-<a href="https://tbrain.trendmicro.com.tw/Competitions/Details/37"><img src="https://i.imgur.com/TODO.png" title="source: imgur.com" /></a>  
+<a href="https://tbrain.trendmicro.com.tw/Competitions/Details/37"><img src="https://i.imgur.com/54vUEr3.png" title="source: imgur.com" /></a>  
 > 在大型語言模型加速催化各式技術的年代，語言模型的開發週期越來越短、效能越來越強。隨著大型語言模型的問世，金融業龐大且複雜的資料已經不再是語料檢索無法高度泛化的障礙，而是逐漸被解決的問題。
 > 本屆挑戰賽聚焦在金融問答領域，提供豐富的資料庫供參賽者使用。參賽者需設計機制以提高檢索結果的準確性，包括從提供的語料中找出完整回答問題的正確資料等基本要求，以及應用大型語言模型的生成能力，產出正確且完整的回答。
 
@@ -140,12 +140,7 @@ take baseline result for example:
 python ./evaluation.py --gt ./datasets/preliminary/ground_truths_example.json --rs ./outputs/baseline.json
 ```
 
-
-## 🧾 Reference
-- **Langchain**: 
-
 <br>
-
 
 
 ## 📫 Contact Us

@@ -6,9 +6,9 @@ Only Use Edward pipelines (Based on embedding similarity)
 Use embedding model (BAAI/bge-small-zh-v1.5) to retrieval the top-3 passages for Edward.
 Following is the simple graphics of the flowchart
 
-                                    +-------------------+
-                                    |   Edward Pipeline |
-                                    +-------------------+
+                                    +--------------------+
+                                    |   Edward Pipeline  |
+                                    +--------------------+
                                               |
                                               v
                                 +-----------------------------+
@@ -38,7 +38,7 @@ from src.pipeline.pipelines import KelvinPipeline, JonathanPipeline, TomPipeline
 if __name__ == "__main__":
     # 使用argparse解析命令列參數
     parser = argparse.ArgumentParser(description='Process some paths and files.')
-    parser.add_argument('--question_path', type=str, default="./data/datasets/preliminary/questions_example_revision.json", help='讀取發布題目路徑')  # 問題文件的路徑
+    parser.add_argument('--question_path', type=str, default="./data/datasets/preliminary_questions/questions_preliminary.json", help='讀取發布題目路徑')  # 問題文件的路徑
     parser.add_argument('--source_path', type=str, default="./data/datasets/preliminary", help='讀取參考資料路徑')  # 參考資料的路徑
     parser.add_argument('--output_path', type=str, default="./outputs/preliminary/submission_3.json", help='輸出符合參賽格式的答案路徑')  # 答案輸出的路徑
     parser.add_argument('--top_n', type=int, default=3, help='選擇TOPN')
