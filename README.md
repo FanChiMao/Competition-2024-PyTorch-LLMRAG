@@ -3,7 +3,6 @@
 💬 **Applications of RAG and LLM in Financial Q&A**  
 
 ## TEAM_6029: Kelvin, Jonathan, Edward, Tom   
-> This project is developed by the Product R&D Department of the Digital Image Technology Division at ASUS Computer Inc. AI Solution Business Unit.
 
 ---
 
@@ -13,17 +12,6 @@
 > 在大型語言模型加速催化各式技術的年代，語言模型的開發週期越來越短、效能越來越強。隨著大型語言模型的問世，金融業龐大且複雜的資料已經不再是語料檢索無法高度泛化的障礙，而是逐漸被解決的問題。
 > 本屆挑戰賽聚焦在金融問答領域，提供豐富的資料庫供參賽者使用。參賽者需設計機制以提高檢索結果的準確性，包括從提供的語料中找出完整回答問題的正確資料等基本要求，以及應用大型語言模型的生成能力，產出正確且完整的回答。
 
-<a href="https://drive.google.com/TODO" target="_blank">
-  <img src="https://img.shields.io/badge/Supplementary-Report_EN-yellow" alt="Report-en">
-</a>
-
-<a href="https://drive.google.com/TODO" target="_blank">
-  <img src="https://img.shields.io/badge/Supplementary-Report_CH-yellow" alt="Report-ch">
-</a>
-
-<a href="https://colab.research.google.com/drive/TODO" target="_blank">
-  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab">
-</a>
 
 <a href="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2FFanChiMao%2FCompetition-2024-PyTorch-LLMRAG&label=visitors&countColor=%232ccce4&style=plastic" target="_blank">
   <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2FFanChiMao%2FCompetition-2024-PyTorch-LLMRAG&label=visitors&countColor=%232ccce4&style=plastic" alt="Visitors">
